@@ -1,0 +1,26 @@
+.game {
+    display: flex;
+}
+
+.choices {
+    display: flex;
+    background-color: grey;
+}
+
+.choices .hand {
+    background-color: lightseagreen;
+    border: black 1px solid;
+    border-radius: 15px;
+    margin: 15px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.choices .hand:hover {
+    background-color: cadetblue;
+    border-color: grey;
+}
+
+.choices .hand img {
+    max-height: 75px;
+}

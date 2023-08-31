@@ -1,0 +1,111 @@
+body {
+  width: 100%;
+}
+
+header > h1 {
+  margin: 5px;
+  color: rgb(0, 107, 98);
+}
+
+dialog {
+  position: relative;
+  border-radius: 10px;
+  padding-left: 2em;
+  padding-right: 2em;
+  font-weight: bold;
+  max-width: 90vw;
+}
+
+dialog > pre {
+  white-space: pre-wrap;
+}
+
+.dialog-success {
+  border-color: rgb(0, 107, 98);
+  background-color: rgba(0, 107, 98, 0.6);
+  color: white;
+}
+
+.dialog-error {
+  border-color: #ff3e2c;
+  background-color: #ffe8e6;
+  color: #ff3e2c;
+}
+
+.text-center {
+  text-align: center;
+}
+
+@media (max-width: 549px){
+  .hidden--mobile {
+    display: none !important;
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  nav > i {
+    padding: 1rem;
+    font-size: 2em;
+  }
+
+  nav > ul {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 0 0;
+  }
+
+  nav > ul > li {
+    padding: 0.5rem;
+    list-style-type: none;
+  }
+
+  #about-me img {
+    width: 40%;
+    height: auto;
+    margin-left: 30%;
+  }
+}
+
+@media (min-width: 550px) {
+  nav > ul {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 0 0;
+  }
+
+  nav > ul > li {
+    display: inline-block;
+    text-decoration: none;
+    border: 1px solid;
+    padding: 0.5rem 0.5rem;
+    border-radius: 25px;
+  }
+
+  nav > ul > li:hover {
+    border:  1px blue solid;
+  }
+
+  nav > ul > li :hover {
+    color: red;
+  }
+
+  nav > .fa-bars {
+    display: none;
+  }
+
+  #about-me {
+    margin-right: 3rem;
+  }
+
+  #about-me img {
+    float: left;
+    width: 25%;
+    height: auto;
+    margin-right: 1rem;
+  }
+}
