@@ -1,6 +1,6 @@
 import html from "html-literal";
-import '../../assets/css/views/rockPaperScissors.css';
-import * as images from "../../assets/img";
+import '../assets/css/views/rockPaperScissors.css';
+import * as images from "../assets/img";
 
 export default (state) => html`
 <h2>Make your selection:</h2>

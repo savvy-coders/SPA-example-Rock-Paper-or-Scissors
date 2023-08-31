@@ -1,11 +1,11 @@
 import html from "html-literal";
-import "../../assets/css/views/aboutMe.css";
+import "../assets/css/views/aboutMe.css";
 /*
   Import an image directly from assets/img folder
   import dogPic from "../assets/img/dog-with-flower.jpg";
 */
 // Import all images using the aggregator
-import * as images from "../../assets/img/";
+import * as images from "../assets/img/";
 
 export default state => html`
   <section id="about-me">

@@ -1,6 +1,6 @@
 import html from "html-literal";
-import "../../assets/css/views/viewNotFound.css";
-import * as images from "../../assets/img/";
+import "../assets/css/views/viewNotFound.css";
+import * as images from "../assets/img/";
 
 export default () => html`
   <div id="oops404">

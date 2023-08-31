@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "parcel-build": "parcel build index.html && cp _redirects ./dist/",
-    "serve": "parcel src/index.html",
-    "app:watch": "nodemon --watch ./server -e js server/app.js"
+    "spa:build": "parcel build index.html && cp _redirects ./dist/",
+    "spa:watch": "parcel spa/index.html",
+    "api:watch": "nodemon --watch ./api -e js api/app.js"
   },
   "author": "",
   "license": "ISC",

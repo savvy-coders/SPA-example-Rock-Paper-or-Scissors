@@ -1,6 +1,6 @@
 import html from "html-literal";
-import * as images from "../../assets/img";
-import "../../assets/css/views/results.css";
+import * as images from "../assets/img";
+import "../assets/css/views/results.css";
 
 export default (state) => html`
 <div class="game">

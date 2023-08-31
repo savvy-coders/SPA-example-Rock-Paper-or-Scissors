@@ -132,28 +132,6 @@ router.hooks({
     }
     
     if (view === "rockPaperScissors") {
-      // document.addEventListener('keyup', event => {
-      //   switch(event.key) {
-      //     case 'p':
-      //     case 'P':
-      //       // Paper (P)
-      //       store.rockPaperScissors.player1 = 'paper';
-      //       break;
-      //     case 'r': // R
-      //     case 'R': // r
-      //       // Rock
-      //       store.rockPaperScissors.player1 = 'rock';
-      //       break;
-      //     case 's':
-      //     case 'S':
-      //       // Scissors (S)
-      //       store.rockPaperScissors.player1 = 'scissors';
-      //       break;
-      //   }
-      //   store.rockPaperScissors.player2 = 'scissors';
-      //   store.rockPaperScissors.show = true;
-      //   router.navigate('/rock-paper-scissors');
-      // });
       document.querySelectorAll('.choices .hand').forEach(hand => {
         hand.addEventListener('click', event => {
           // Set the player 1 hand from the selected button
