@@ -1,12 +1,13 @@
-.userForm {
-    margin: 1em;
+#newGame {
+    width: 15em;
+    text-align: center;
+}
+
+.game {
+    /*display: flex;*/
 }
 
 .hands {
-    display: flex;
-}
-
-.choices {
     display: flex;
 }
 
@@ -22,9 +23,4 @@
 .button:hover {
     background-color: cadetblue;
     border-color: grey;
-}
-
-.choices .hand img {
-    max-height: 75px;
-    pointer-events: none;
 }

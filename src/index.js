@@ -6,15 +6,6 @@ import { camelCase } from "lodash";
 
 let PIZZA_PLACE_API_URL;
 
-if (process.env.PIZZA_PLACE_API_URL) {
-  PIZZA_PLACE_API_URL =
-    process.env.PIZZA_PLACE_API_URL || "http://localhost:4040";
-} else {
-  console.error(
-    "Please create the .env file with a value for PIZZA_PLACE_API_URL"
-  );
-}
-
 const router = new Navigo("/");
 
 function render(state = store.home) {
@@ -31,83 +22,8 @@ function render(state = store.home) {
   //afterRender(state);
 }
 
-function afterRender(state) {
-  // Add menu toggle to bars icon in nav bar which is rendered on every page
-  document
-    .querySelector(".fa-bars")
-    .addEventListener("click", () =>
-      document.querySelector("nav > ul").classList.toggle("hidden--mobile")
-    );
-
-  document.getElementById('notification').addEventListener('close', event => {
-    store.notification.visible = false;
-    store.notification.showCount = 0;
-  });
-
-  // Run this code if the home view is requested
-  if (state.view === "home") {
-    document.getElementById('action-button').addEventListener('click', event => {
-      event.preventDefault();
-
-      alert('Hello! You clicked the action button! Redirecting to the pizza view');
-
-      router.navigate('https://www.google.com');
-    });
-  }
-
-  //// Run this code if the pizza view is requested
-  //if (state.view === "pizza") {
-  //  document.querySelectorAll('.delete-button')
-  //    .forEach(domElement => {
-  //      domElement.addEventListener('click', event => {
-  //        const id = event.target.dataset.id;
-  //
-  //        if (window.confirm(`Are you sure you want to delete this pizza (${id})`)) {
-  //          axios
-  //            .delete(`${process.env.PIZZA_PLACE_API_URL}/pizzas/${id}`)
-  //            .then(deleteResponse => {
-  //              if (deleteResponse.status === 200) {
-  //                store.notification.type = "success";
-  //                store.notification.visible = true;
-  //                store.notification.dismissable = true;
-  //                store.notification.message = `Pizza ${id} was successfully deleted`;
-  //              }
-  //
-  //              // Update the list of pizza after removing the pizza
-  //              axios
-  //                .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
-  //                .then((response) => {
-  //                  store.pizza.pizzas = response.data;
-  //                  // Reload the existing page, thus firing the already hook
-  //                  router.navigate('/pizza');
-  //                })
-  //                .catch((error) => {
-  //                  console.error("Error retrieving pizzas", error);
-  //
-  //                  store.notification.type = "error";
-  //                  store.notification.visible = true;
-  //                  store.notification.message = "Error retrieving pizzas";
-  //
-  //                  router.navigate('/pizza');
-  //                });
-  //            })
-  //            .catch(error => {
-  //              console.error("Error deleting pizza", error);
-  //
-  //              store.notification.type = "error";
-  //              store.notification.visible = true;
-  //              store.notification.message = "Error deleting pizza";
-  //
-  //              router.navigate('/pizza');
-  //            })
-  //        }
-  //      });
-  //    });
-  //}
-}
-
 function updateNotification() {
-  // Hide the notification component if it is visible and not dismissable
+  // Hide the notification component if it is visible and not dismissible
   if (store.notification.visible && store.notification.dismissable === false) {
     if (store.notification.showCount >= 1) {
       // Hide the notification after it has been shown once
@@ -174,25 +90,6 @@ router.hooks({
         }
         break;
       }
-      // Run this code if the pizza view is requested
-      case "pizza": {
-        try {
-          const response = await axios.get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`);
-
-          store.pizza.pizzas = response.data;
-
-          done();
-        } catch(error) {
-          console.log("Error retrieving pizza data", error);
-
-          store.notification.type = "error";
-          store.notification.visible = true;
-          store.notification.message = "Error retrieving pizza data";
-
-          done();
-        }
-        break;
-      }
       // Run this code if the view is not listed above
       default: {
         done();
@@ -235,38 +132,67 @@ router.hooks({
     }
     
     if (view === "rockPaperScissors") {
-      document.addEventListener('keyup', event => {
-        console.log('matsinet-event.key', event.key);
-        switch(event.key) {
-          case 'p':
-          case 'P':
-            // Paper (P)
-            store.rockPaperScissors.player1 = 'paper';
-            break;
-          case 'r': // R
-          case 'R': // r
-            // Rock
-            store.rockPaperScissors.player1 = 'rock';
-            break;
-          case 's':
-          case 'S':
-            // Scissors (S)
-            store.rockPaperScissors.player1 = 'scissors';
-            break;
-        }
-        store.rockPaperScissors.player2 = 'scissors';
-        store.rockPaperScissors.show = true;
-        console.log('matsinet-store.rockPaperScissors', store.rockPaperScissors);
-        router.navigate('/rock-paper-scissors');
-      });
+      // document.addEventListener('keyup', event => {
+      //   switch(event.key) {
+      //     case 'p':
+      //     case 'P':
+      //       // Paper (P)
+      //       store.rockPaperScissors.player1 = 'paper';
+      //       break;
+      //     case 'r': // R
+      //     case 'R': // r
+      //       // Rock
+      //       store.rockPaperScissors.player1 = 'rock';
+      //       break;
+      //     case 's':
+      //     case 'S':
+      //       // Scissors (S)
+      //       store.rockPaperScissors.player1 = 'scissors';
+      //       break;
+      //   }
+      //   store.rockPaperScissors.player2 = 'scissors';
+      //   store.rockPaperScissors.show = true;
+      //   router.navigate('/rock-paper-scissors');
+      // });
       document.querySelectorAll('.choices .hand').forEach(hand => {
         hand.addEventListener('click', event => {
-          store.rockPaperScissors.player1 = event.target.dataset.hand;
-          store.rockPaperScissors.player2 = 'scissors';
-          store.rockPaperScissors.show = true;
-          console.log('matsinet-event.target.dataset.hand', event.target.dataset.hand);
-          router.navigate('/rock-paper-scissors');
+          // Set the player 1 hand from the selected button
+          store.results.player1.hand = event.target.dataset.hand;
+          // Get the list of hands
+          const hands = Object.keys(store.results.hands);
+          // Set computer to a random hand
+          store.results.player2.hand = hands[(Math.floor(Math.random() * hands.length))];
+          // Determine who won
+          let whoWonOutput = "";
+          if (store.results.player1.hand === store.results.player2.hand) {
+            whoWonOutput = "It's a tie, nobody wins this round.";
+          } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
+            whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
+          } else {
+            whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
+          }
+          store.results.won = whoWonOutput;
+          // Set the player 1 name, defaulting to "Player 1"
+          store.results.player1.name = document.querySelector('#name').value || "Player 1";
+          router.navigate('/results');
         });
+      });
+    }
+
+    if (view === "results") {
+      document.querySelector('#newGame').addEventListener("click", event => {
+        event.preventDefault();
+
+        store.results.player1 = {
+          name: "Player 1",
+          hand: ""
+        };
+        store.results.player2 = {
+          name: "Computer",
+          hand: ""
+        };
+
+        router.navigate('/rock-paper-scissors')
       });
     }
   }
