@@ -130,10 +130,33 @@ router.hooks({
         location.href = 'https://www.google.com';
       });
     }
-    
+
     if (view === "rockPaperScissors") {
+      document.querySelector('#computerGame').addEventListener("click", event => {
+        event.preventDefault();
+
+        const name = document.querySelector('#name').value;
+        store.results.player1.name = name;
+        store.rockPaperScissors.name = name;
+
+        router.navigate('/move')
+      });
+
+      document.querySelector('#opponentGame').addEventListener("click", event => {
+        event.preventDefault();
+
+        const name = document.querySelector('#name').value;
+        store.results.player1.name = name;
+        store.rockPaperScissors.name = name;
+
+        router.navigate('/move')
+      });
+    }
+
+    if (view === "move") {
       document.querySelectorAll('.choices .hand').forEach(hand => {
         hand.addEventListener('click', event => {
+          // Set the player 1 name
           // Set the player 1 hand from the selected button
           store.results.player1.hand = event.target.dataset.hand;
           // Get the list of hands
@@ -150,8 +173,6 @@ router.hooks({
             whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
           }
           store.results.won = whoWonOutput;
-          // Set the player 1 name, defaulting to "Player 1"
-          store.results.player1.name = document.querySelector('#name').value || "Player 1";
           router.navigate('/results');
         });
       });

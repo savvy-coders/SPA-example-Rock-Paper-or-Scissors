@@ -1,10 +1,13 @@
 #newGame {
-    width: 15em;
-    text-align: center;
+    background-color: lightseagreen;
 }
 
-.game {
-    /*display: flex;*/
+#playAgain {
+    background-color: steelblue;
+}
+
+.controls {
+    display: flex;
 }
 
 .hands {
@@ -12,12 +15,14 @@
 }
 
 .button {
-    background-color: lightseagreen;
+    color: white;
     border: black 1px solid;
     border-radius: 15px;
     margin: 15px;
     padding: 10px;
     cursor: pointer;
+    width: 15em;
+    text-align: center;
 }
 
 .button:hover {

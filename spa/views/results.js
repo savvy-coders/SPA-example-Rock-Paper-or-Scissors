@@ -15,6 +15,9 @@ export default (state) => html`
     </div>
   </div>
   <h2>${state.won}</h2>
-  <div id="newGame" class="button">New Game</div>
+  <div class="controls">
+    <div id="newGame" class="button">New Game</div>
+    <div id="playAgain" class="button">Play Again</div>
+  </div>
 </div>
 `;
