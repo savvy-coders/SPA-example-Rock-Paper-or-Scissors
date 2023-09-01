@@ -1,0 +1,25 @@
+GET http://localhost:4040/status
+
+###
+
+WEBSOCKET ws://localhost:4040/game
+Content-Type: application-json // Used for content highlighting only
+
+// Request body, for example:
+{
+  "action": "start",
+  "name": "John"
+}
+
+###
+
+WEBSOCKET ws://localhost:4040/game
+Content-Type: application-json // Used for content highlighting only
+
+// Request body, for example:
+{
+  "action": "join",
+  "name": "Jane",
+  "game": "9ZzyUw"
+}
+

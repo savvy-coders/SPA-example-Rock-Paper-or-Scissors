@@ -9,7 +9,6 @@ import mongoose from "mongoose";
 dotenv.config();
 
 const app = express();
-// expressWs(apiServer);
 
 // Logging Middleware Declaration
 const logging = (request, response, next) => {
@@ -105,7 +104,7 @@ wsServer.on('connection', (ws, request) => {
 
         response.game = gameId;
         response.url = `/game/${gameId}`;
-        response.playerId = playerId;
+        response.player = playerId;
 
         games[gameId] = game;
       }
@@ -120,6 +119,8 @@ wsServer.on('connection', (ws, request) => {
         players[playerId] = ws;
 
         response.status = `${data.name} has joined game ${gameId}`;
+        response.player = playerId;
+        response.game = gameId;
       }
 
       if (data.action === 'play') {
@@ -127,14 +128,25 @@ wsServer.on('connection', (ws, request) => {
           // Throw an error and warn the user
         }
 
-        games[data.game].players[data.player].move = data.move;
+        gameId = data.game;
 
-        const moves = games[data.game].players.filter(player => player.move);
+        games[gameId].players[data.player].move = data.move;
+        console.log('matsinet-games[data.game]', games[data.game]);
+        //const moves = games[data.game].players.filter(player => player?.move);
+        const moves = [];
+        for (const id in games[data.game].players) {
+          if (id in games[data.game].players) {
+            moves.push(games[data.game].players[id].move);
+          }
+        }
+
+        console.log('matsinet-moves', moves);
+        
         if (moves.length > 1) {
           response.game = games[data.game];
           response.message = 'Game complete!'
         } else {
-          response.message = 'Waiting for a player to complete their turn!';
+          response.message = 'Waiting for all players to complete their turn!';
         }
       }
 
