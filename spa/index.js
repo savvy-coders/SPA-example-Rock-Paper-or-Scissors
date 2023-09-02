@@ -262,7 +262,9 @@ router.hooks({
         document.querySelector('#newGame').addEventListener("click", event => {
           event.preventDefault();
 
-          connection.destroy();
+          if (connection) {
+            connection.destroy();
+          }
 
           store.results.player1 = {
             name: "Player 1",
