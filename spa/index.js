@@ -35,11 +35,29 @@ function updateNotification() {
   }
 }
 
-function setupConnection(name) {
+function setupConnection(type, name) {
   let connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
   connection.onopen = (event) => {
     console.log('matsinet-connection opened');
+    const gameRequest = {
+      action: false,
+      name
+    };
+    switch (type) {
+      case 'start':
+        gameRequest.action = 'start';
+        break;
+      case 'join':
+        gameRequest.action = 'join';
+        gameRequest.game = store.move.game;
+        break;
+    }
+    console.log('matsinet-gameRequest', gameRequest);
+    if (gameRequest.action) {
+      connection.send(JSON.stringify(gameRequest));
+    }
   }
+  connection.onclose = (event) => {};
   connection.onmessage = (event) => {
     const data = JSON.parse(event.data);
     console.log('matsinet-message received');
@@ -190,37 +208,23 @@ router.hooks({
           router.navigate('/move')
         });
 
-        document.querySelector('#opponentGame').addEventListener("click", event => {
+        document.querySelector('#opponentGame').addEventListener("click", async event => {
           event.preventDefault();
 
           const name = document.querySelector('#name').value;
 
-          const startGameRequest = {
-            action: 'start',
-            name
-          };
-
-          const connection = setupConnection(name);
-
-          connection.send(JSON.stringify(startGameRequest));
+          setupConnection('start', name);
         });
         break;
       case "join":
-        document.querySelector('#joinGame').addEventListener('click', event => {
+        document.querySelector('#joinGame').addEventListener('click', async event => {
           event.preventDefault();
 
           const name = document.querySelector('#name').value;
 
           store.results.player2.name = name;
 
-          const joinGameRequest = {
-            action: 'join',
-            name
-          };
-
-          const connection = setupConnection(name);
-
-          connection.send(JSON.stringify(joinGameRequest));
+          setupConnection('join', name);
         });
         break;
       case "move":

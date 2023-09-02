@@ -85,11 +85,8 @@ wsServer.on('connection', (ws, request) => {
         error: false
       };
 
-      const gameUid = new ShortUniqueId({length: 6});
-      const playerUid = new ShortUniqueId({length: 10});
-
-      let gameId = gameUid();
-      let playerId = playerUid();
+      let gameId = new ShortUniqueId({length: 6, dictionary: "alpha"})();
+      let playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
 
       if (data.action === 'start') {
         let game = {
