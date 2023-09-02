@@ -35,6 +35,46 @@ function updateNotification() {
   }
 }
 
+function setupConnection(name) {
+  let connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
+  connection.onopen = (event) => {
+    console.log('matsinet-connection opened');
+  }
+  connection.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('matsinet-message received');
+    console.log('matsinet-data', data);
+
+    switch (data.type) {
+      case 'start':
+        store.results.player1.name = name;
+        store.rockPaperScissors.name = name;
+        store.move.game = data.game;
+        store.move.player = data.player;
+        store.move.hasOpponent = false;
+        store.move.isAgainstComputer = false;
+        store.move.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
+        break;
+      case 'join':
+        store.results.player1.name = name;
+        store.rockPaperScissors.name = name;
+        store.move.game = data.game;
+        store.move.player = data.player;
+        store.move.hasOpponent = true;
+        store.move.isAgainstComputer = false;
+        store.move.message = data.message;
+        break;
+      case 'play':
+
+        break;
+    }
+
+    router.navigate('/move');
+  };
+
+  return connection;
+}
+
 router.hooks({
   // Use object deconstruction to store the data and (query)params from the Navigo match parameter
   // Runs before a route handler that the match is hasn't been visited already
@@ -92,7 +132,6 @@ router.hooks({
       }
       // Run this code if the view is not listed above
       case "join":
-        console.log('matsinet-params', params);
         if (params.game) {
           store.move.game = params.game;
         }
@@ -161,33 +200,9 @@ router.hooks({
             name
           };
 
-          const connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
-          connection.onopen = (event) => {
-            console.log('matsinet-connection opened');
-            connection.send(JSON.stringify(startGameRequest));
-          }
-          connection.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('matsinet-message received');
-            console.log('matsinet-data', data);
+          const connection = setupConnection(name);
 
-            switch (data.type) {
-              case 'start':
-                store.results.player1.name = name;
-                store.rockPaperScissors.name = name;
-                store.move.game = data.game;
-                store.move.player = data.player;
-                store.move.hasOpponent = false;
-                store.move.isAgainstComputer = false;
-                store.move.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
-                break;
-              case 'play':
-
-                break;
-            }
-
-            router.navigate('/move');
-          };
+          connection.send(JSON.stringify(startGameRequest));
         });
         break;
       case "join":
@@ -203,32 +218,9 @@ router.hooks({
             name
           };
 
-          const connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
-          connection.onopen = (event) => {
-            console.log('matsinet-connection opened');
-            connection.send(JSON.stringify(joinGameRequest));
-          }
-          connection.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('matsinet-message received');
-            console.log('matsinet-data', data);
+          const connection = setupConnection(name);
 
-            switch (data.type) {
-              case 'join':
-                store.results.player1.name = name;
-                store.rockPaperScissors.name = name;
-                store.move.game = data.game;
-                store.move.player = data.player;
-                store.move.hasOpponent = true;
-                store.move.isAgainstComputer = false;
-                store.move.message = data.message;
-                break;
-              case 'play':
-                break;
-            }
-
-            router.navigate('/move');
-          }
+          connection.send(JSON.stringify(joinGameRequest));
         });
         break;
       case "move":
