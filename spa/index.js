@@ -3,13 +3,13 @@ import * as store from "./store";
 import axios from "axios";
 import Navigo from "navigo";
 import { camelCase } from "lodash";
-
-let PIZZA_PLACE_API_URL;
+import { connection } from "mongoose";
 
 const router = new Navigo("/");
 
 function render(state = store.home) {
-  document.querySelector("#root").innerHTML = `
+  console.log('matsinet-state', state);
+  document.querySelector("#slot").innerHTML = `
     ${header(state)}
     ${notification(store.notification)}
     ${nav(store.nav)}
@@ -91,6 +91,13 @@ router.hooks({
         break;
       }
       // Run this code if the view is not listed above
+      case "join":
+        console.log('matsinet-params', params);
+        if (params.game) {
+          store.move.game = params.game;
+        }
+        done();
+        break;
       default: {
         done();
       }
@@ -120,79 +127,165 @@ router.hooks({
       store.notification.showCount = 0;
     });
 
-    // Run this code if the home view is requested
-    if (view === "home") {
-      document.getElementById('action-button').addEventListener('click', event => {
-        event.preventDefault();
+    switch (view) {
+      case "home":
+        document.getElementById('action-button').addEventListener('click', event => {
+          event.preventDefault();
 
-        alert('Hello! You clicked the action button! Redirecting to the pizza view');
+          alert('Hello! You clicked the action button! Redirecting to the pizza view');
 
-        location.href = 'https://www.google.com';
-      });
-    }
-
-    if (view === "rockPaperScissors") {
-      document.querySelector('#computerGame').addEventListener("click", event => {
-        event.preventDefault();
-
-        const name = document.querySelector('#name').value;
-        store.results.player1.name = name;
-        store.rockPaperScissors.name = name;
-
-        router.navigate('/move')
-      });
-
-      document.querySelector('#opponentGame').addEventListener("click", event => {
-        event.preventDefault();
-
-        const name = document.querySelector('#name').value;
-        store.results.player1.name = name;
-        store.rockPaperScissors.name = name;
-
-        router.navigate('/move')
-      });
-    }
-
-    if (view === "move") {
-      document.querySelectorAll('.choices .hand').forEach(hand => {
-        hand.addEventListener('click', event => {
-          // Set the player 1 name
-          // Set the player 1 hand from the selected button
-          store.results.player1.hand = event.target.dataset.hand;
-          // Get the list of hands
-          const hands = Object.keys(store.results.hands);
-          // Set computer to a random hand
-          store.results.player2.hand = hands[(Math.floor(Math.random() * hands.length))];
-          // Determine who won
-          let whoWonOutput = "";
-          if (store.results.player1.hand === store.results.player2.hand) {
-            whoWonOutput = "It's a tie, nobody wins this round.";
-          } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
-            whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
-          } else {
-            whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
-          }
-          store.results.won = whoWonOutput;
-          router.navigate('/results');
+          location.href = 'https://www.google.com';
         });
-      });
-    }
+        break;
+      case "rockPaperScissors":
+        document.querySelector('#computerGame').addEventListener("click", event => {
+          event.preventDefault();
 
-    if (view === "results") {
-      document.querySelector('#newGame').addEventListener("click", event => {
-        event.preventDefault();
+          const name = document.querySelector('#name').value;
+          store.results.player1.name = name;
+          store.rockPaperScissors.name = name;
+          store.move.hasOpponent = true;
+          store.move.isAgainstComputer = true;
+          store.move.message = "Please select your move as the computer is choosing it's move."
 
-        store.results.player1 = {
-          name: "Player 1",
-          hand: ""
-        };
-        store.results.player2 = {
-          name: "Computer",
-          hand: ""
-        };
+          router.navigate('/move')
+        });
 
-        router.navigate('/rock-paper-scissors')
-      });
+        document.querySelector('#opponentGame').addEventListener("click", event => {
+          event.preventDefault();
+
+          const name = document.querySelector('#name').value;
+
+          const startGameRequest = {
+            action: 'start',
+            name
+          };
+
+          const connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
+          connection.onopen = (event) => {
+            console.log('matsinet-connection opened');
+            connection.send(JSON.stringify(startGameRequest));
+          }
+          connection.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('matsinet-message received');
+            console.log('matsinet-data', data);
+
+            switch (data.type) {
+              case 'start':
+                store.results.player1.name = name;
+                store.rockPaperScissors.name = name;
+                store.move.game = data.game;
+                store.move.player = data.player;
+                store.move.hasOpponent = false;
+                store.move.isAgainstComputer = false;
+                store.move.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
+                break;
+              case 'play':
+
+                break;
+            }
+
+            router.navigate('/move');
+          };
+        });
+        break;
+      case "join":
+        document.querySelector('#joinGame').addEventListener('click', event => {
+          event.preventDefault();
+
+          const name = document.querySelector('#name').value;
+
+          store.results.player2.name = name;
+
+          const joinGameRequest = {
+            action: 'join',
+            name
+          };
+
+          const connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
+          connection.onopen = (event) => {
+            console.log('matsinet-connection opened');
+            connection.send(JSON.stringify(joinGameRequest));
+          }
+          connection.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('matsinet-message received');
+            console.log('matsinet-data', data);
+
+            switch (data.type) {
+              case 'join':
+                store.results.player1.name = name;
+                store.rockPaperScissors.name = name;
+                store.move.game = data.game;
+                store.move.player = data.player;
+                store.move.hasOpponent = true;
+                store.move.isAgainstComputer = false;
+                store.move.message = data.message;
+                break;
+              case 'play':
+                break;
+            }
+
+            router.navigate('/move');
+          }
+        });
+        break;
+      case "move":
+        document.querySelectorAll('.choices .hand').forEach(hand => {
+          hand.addEventListener('click', event => {
+            // Set the player 1 name
+            // Set the player 1 hand from the selected button
+            const hand = event.target.dataset.hand;
+            store.results.player1.hand = hand
+            store.move.hand = hand;
+
+            if (store.move.isAgainstComputer) {
+              // Get the list of hands
+              const hands = Object.keys(store.results.hands);
+              // Set computer to a random hand
+              store.results.player2.hand = hands[(Math.floor(Math.random() * hands.length))];
+              // Determine who won
+              let whoWonOutput = "";
+              if (store.results.player1.hand === store.results.player2.hand) {
+                whoWonOutput = "It's a tie, nobody wins this round.";
+              } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
+                whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
+              } else {
+                whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
+              }
+              store.results.won = whoWonOutput;
+              router.navigate('/results');
+            } else {
+              // Send move message to connection
+            }
+          });
+        });
+        break;
+      case "results":
+        document.querySelector('#newGame').addEventListener("click", event => {
+          event.preventDefault();
+
+          connection.destroy();
+
+          store.results.player1 = {
+            name: "Player 1",
+            hand: ""
+          };
+          store.results.player2 = {
+            name: "Computer",
+            hand: ""
+          };
+
+          router.navigate('/rock-paper-scissors')
+        });
+
+        document.querySelector('#playAgain').addEventListener("click", event => {
+          event.preventDefault();
+
+          router.navigate('/move')
+        });
+        break;
     }
   }
 });
@@ -206,6 +299,7 @@ router
     ":view": ({ data, params }) => {
       // Change the :view data element to camel case and remove any dashes (support for multi-word views)
       const view = data?.view ? camelCase(data.view) : "home";
+      console.log('matsinet-view', view);
       if (view in store) {
         render(store[view]);
       } else {

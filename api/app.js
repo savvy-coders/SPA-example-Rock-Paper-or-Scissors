@@ -102,9 +102,10 @@ wsServer.on('connection', (ws, request) => {
         };
         players[playerId] = ws;
 
+        response.type = 'start';
         response.game = gameId;
-        response.url = `/game/${gameId}`;
         response.player = playerId;
+        response.message = `Please invite the other player to join using the provided URL`;
 
         games[gameId] = game;
       }
@@ -118,7 +119,8 @@ wsServer.on('connection', (ws, request) => {
         };
         players[playerId] = ws;
 
-        response.status = `${data.name} has joined game ${gameId}`;
+        response.type = 'join';
+        response.message = `${data.name} has joined game ${gameId}, please wait for them to make their move.`;
         response.player = playerId;
         response.game = gameId;
       }
@@ -141,7 +143,8 @@ wsServer.on('connection', (ws, request) => {
         }
 
         console.log('matsinet-moves', moves);
-        
+
+        response.type = 'play';
         if (moves.length > 1) {
           response.game = games[data.game];
           response.message = 'Game complete!'
@@ -158,19 +161,28 @@ wsServer.on('connection', (ws, request) => {
           players[playerId].send(JSON.stringify(response), { binary: isBinary });
         }
       });
-    }
 
-    if (request.url === '/message') {
-      if (!'player' in data || data.player === 'all') {
-        // Send message to all players
-        wsServer.clients.forEach(client => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(data.message || "Hello World!", { binary: isBinary });
-          }
-        });
-      } else {
-
-      }
+      //if (data.action === 'message') {
+      //  if (!'player' in data || data.player === 'all') {
+      //    // Send message to all players
+      //    wsServer.clients.forEach(client => {
+      //      if (client.readyState === WebSocket.OPEN) {
+      //        client.send(data.message, {binary: isBinary});
+      //      }
+      //    });
+      //  } else {
+      //    if (data.player in players) {
+      //      const playerSocket = players[data.player];
+      //      const jsonData = {
+      //        action: 'message',
+      //        message: data.message
+      //      };
+      //      playerSocket.send(JSON.stringify(jsonData));
+      //    } else {
+      //      ws.send(`User ${data.player} not found, please try again`);
+      //    }
+      //  }
+      //}
     }
   });
 

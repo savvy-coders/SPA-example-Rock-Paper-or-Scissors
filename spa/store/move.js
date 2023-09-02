@@ -1,4 +1,7 @@
 export default {
   header: "Select your hand",
-  view: "move"
+  view: "move",
+  hasOpponent: false,
+  isAgainstComputer: false,
+  message: ""
 };

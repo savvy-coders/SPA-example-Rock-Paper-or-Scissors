@@ -5,6 +5,7 @@ import * as images from "../assets/img";
 export default (state) => {
   console.log('matsinet-state', state);
   return html`
+    <div class="message">${state.message}</div>
     <h2>Make your selection:</h2>
     <div class="choices" contentEditable="false">
       <div class="hand button" data-hand="rock"><img src="${images.rock}" alt="Rock"></div>

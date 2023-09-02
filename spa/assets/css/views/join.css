@@ -1,0 +1,34 @@
+.userForm {
+    margin: 1em;
+}
+
+.hands {
+    display: flex;
+}
+
+.choices {
+    display: flex;
+}
+
+.hand.button {
+    width: 8em;
+}
+
+.button {
+    background-color: lightseagreen;
+    border: black 1px solid;
+    border-radius: 15px;
+    margin: 15px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: cadetblue;
+    border-color: grey;
+}
+
+.choices .hand img {
+    max-height: 75px;
+    pointer-events: none;
+}
