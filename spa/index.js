@@ -3,7 +3,6 @@ import * as store from "./store";
 import axios from "axios";
 import Navigo from "navigo";
 import { camelCase } from "lodash";
-import { connection } from "mongoose";
 
 const router = new Navigo("/");
 
@@ -74,16 +73,16 @@ function setupConnection(type, name) {
         store.move.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
         break;
       case 'join':
-        store.results.player1.name = name;
+        store.results.player2.name = name;
         store.rockPaperScissors.name = name;
         store.move.game = data.game;
         store.move.player = data.player;
-        store.move.hasOpponent = true;
         store.move.isAgainstComputer = false;
+        store.move.hasOpponent = true;
         store.move.message = data.message;
         break;
       case 'play':
-
+        store.results.player1.name = name;
         break;
     }
 
@@ -213,7 +212,7 @@ router.hooks({
 
           const name = document.querySelector('#name').value;
 
-          setupConnection('start', name);
+          var connection = setupConnection('start', name);
         });
         break;
       case "join":
@@ -224,7 +223,7 @@ router.hooks({
 
           store.results.player2.name = name;
 
-          setupConnection('join', name);
+          var connection = setupConnection('join', name);
         });
         break;
       case "move":
@@ -241,20 +240,28 @@ router.hooks({
               const hands = Object.keys(store.results.hands);
               // Set computer to a random hand
               store.results.player2.hand = hands[(Math.floor(Math.random() * hands.length))];
-              // Determine who won
-              let whoWonOutput = "";
-              if (store.results.player1.hand === store.results.player2.hand) {
-                whoWonOutput = "It's a tie, nobody wins this round.";
-              } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
-                whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
-              } else {
-                whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
-              }
-              store.results.won = whoWonOutput;
-              router.navigate('/results');
             } else {
               // Send move message to connection
+              const moveRequest = {
+                action: "move",
+                game: store.move.game,
+                move: store.move.hand
+              };
+
+              connection.send(moveRequest);
             }
+
+            // Determine who won
+            let whoWonOutput = "";
+            if (store.results.player1.hand === store.results.player2.hand) {
+              whoWonOutput = "It's a tie, nobody wins this round.";
+            } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
+              whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
+            } else {
+              whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
+            }
+            store.results.won = whoWonOutput;
+            router.navigate('/results');
           });
         });
         break;

@@ -122,7 +122,7 @@ wsServer.on('connection', (ws, request) => {
         response.game = gameId;
       }
 
-      if (data.action === 'play') {
+      if (data.action === 'move') {
         if (!data.player || !data.game) {
           // Throw an error and warn the user
         }
@@ -141,7 +141,7 @@ wsServer.on('connection', (ws, request) => {
 
         console.log('matsinet-moves', moves);
 
-        response.type = 'play';
+        response.type = 'move';
         if (moves.length > 1) {
           response.game = games[data.game];
           response.message = 'Game complete!'
