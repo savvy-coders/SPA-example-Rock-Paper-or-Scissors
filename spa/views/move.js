@@ -1,16 +1,18 @@
 import html from "html-literal";
 import '../assets/css/views/move.css';
 import * as images from "../assets/img";
+import { capitalize } from "lodash";
 
-export default (state) => {
+export default (state, gameData) => {
   console.log('matsinet-state', state);
+  console.log('matsinet-gameData', gameData);
   return html`
     <div class="message">${state.message}</div>
     <h2>Make your selection:</h2>
     <div class="choices" contentEditable="false">
-      <div class="hand button" data-hand="rock"><img src="${images.rock}" alt="Rock"></div>
-      <div class="hand button" data-hand="paper"><img src="${images.paper}" alt="Paper"></div>
-      <div class="hand button" data-hand="scissors"><img src="${images.scissors}" alt="Scissors"></div>
+      ${Object.keys(gameData.hands).map(hand => {
+        return `<div class="hand button" data-hand="${hand}"><img src="${images[hand]}" alt="${capitalize(hand)}"></div>`;
+      }).join("")};
     </div>
   `;
 }

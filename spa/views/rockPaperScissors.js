@@ -2,8 +2,7 @@ import html from "html-literal";
 import '../assets/css/views/rockPaperScissors.css';
 import * as images from "../assets/img";
 
-export default (state) => {
-  console.log('matsinet-state', state);
+export default (state, gameData) => {
   return html`
     <h2>Start game</h2>
     

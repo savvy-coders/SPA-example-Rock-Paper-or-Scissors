@@ -7,3 +7,4 @@ export { default as rockPaperScissors } from "./rockPaperScissors.js";
 export { default as results } from "./results.js";
 export { default as move } from "./move.js";
 export { default as join } from "./join.js";
+export { default as game } from "./game.js";
