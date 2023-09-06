@@ -2,7 +2,6 @@ import html from "html-literal";
 import '../assets/css/views/join.css';
 
 export default (state) => {
-  console.log('matsinet-state', state);
   return html`
     <h2>Join game</h2>
 

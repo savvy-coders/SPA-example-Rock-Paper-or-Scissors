@@ -32,3 +32,9 @@
     max-height: 75px;
     pointer-events: none;
 }
+
+.error {
+    font-size: 1.2em;
+    color: red;
+    font-weight: bold;
+}

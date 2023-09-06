@@ -7,7 +7,7 @@ export default (state, gameData) => {
   console.log('matsinet-state', state);
   console.log('matsinet-gameData', gameData);
   return html`
-    <div class="message">${state.message}</div>
+    <div class="message">${gameData.message}</div>
     <h2>Make your selection:</h2>
     <div class="choices" contentEditable="false">
       ${Object.keys(gameData.hands).map(hand => {

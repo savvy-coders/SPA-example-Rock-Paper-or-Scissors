@@ -13,6 +13,7 @@ export default (state, gameData) => {
       
       <div class="button" id="computerGame">Start against Computer</div>
       <div class="button" id="opponentGame">Start against Player</div>
+      <div class="error" id="message"></div>
     </div>
   `;
 }

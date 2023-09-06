@@ -1,10 +1,10 @@
 export default {
   id: "",
+  complete: false,
   players: {},
   hasOpponent: false,
   isAgainstComputer: false,
   message: "",
-  won: "",
   hands: {
     rock: "scissors",
     paper: "rock",

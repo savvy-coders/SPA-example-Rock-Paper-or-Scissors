@@ -35,61 +35,87 @@ function updateNotification() {
 }
 
 function setupConnection(type, name) {
-  let connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
-  connection.onopen = (event) => {
-    const gameRequest = {
-      action: false,
-      name
-    };
-    switch (type) {
-      case 'start':
-        gameRequest.action = 'start';
-        break;
-      case 'join':
-        gameRequest.action = 'join';
-        gameRequest.game = store.move.game;
-        break;
-    }
-    console.log('matsinet-gameRequest', gameRequest);
-    if (gameRequest.action) {
-      connection.send(JSON.stringify(gameRequest));
-    }
+  if (!process.env.GAME_API_URL) {
+    alert("Please set the GAME_API_URL environment variable and restart the application");
+    return;
   }
 
-  connection.onclose = (event) => {};
+  try {
+    let connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
 
-  connection.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    connection.onopen = (event) => {
+      console.log('matsinet-store.game', store.game);
+      const gameRequest = {
+        action: false,
+        name
+      };
+      switch (type) {
+        case 'start':
+          gameRequest.action = 'start';
+          break;
+        case 'join':
+          gameRequest.action = 'join';
+          gameRequest.game = store.game.id;
+          break;
+      }
 
-    switch (data.type) {
-      case 'start':
-        store.game.players.player1.name = name;
-        store.rockPaperScissors.name = name;
-        store.game.id = data.game;
-        store.rockPaperScissors.player = data.player;
-        store.rockPaperScissors.hasOpponent = false;
-        store.rockPaperScissors.isAgainstComputer = false;
-        store.rockPaperScissors.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
-        break;
-      case 'join':
-        store.game.id = data.game;
-        store.game.players[data.player] = {
-          name,
-          id: data.player
-        };
-        store.rockPaperScissors.hasOpponent = true;
-        store.rockPaperScissors.isAgainstComputer = false;
-        store.move.message = data.message;
-        break;
-      case 'play':
-        store.game.players[data.player].hand = data.hand;
-        break;
+      console.log('matsinet-gameRequest', gameRequest);
+
+      if (gameRequest.action) {
+        connection.send(JSON.stringify(gameRequest));
+      }
     }
 
-    router.navigate('/move');
-  };
+    connection.onclose = (event) => {
+      console.log('Websocket connection has closed!');
+    };
 
-  return connection;
+    connection.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('matsinet-wsData', data);
+
+      store.game.id = data.game;
+      store.game.players[data.player] = {
+        name,
+        id: data.player
+      };
+      store.game.isAgainstComputer = false;
+
+      switch (data.type) {
+        case 'start':
+          store.game.hasOpponent = false;
+          store.game.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
+          console.log('matsinet-start-data', data);
+          router.navigate(`/move/${data.player}`);
+          break;
+        case 'join':
+          store.game.hasOpponent = true;
+          store.game.message = data.message;
+          console.log('matsinet-join-data', data);
+          router.navigate(`/move/${data.player}`);
+          break;
+        case 'move':
+          store.game.players[data.player].hand = data.hand;
+          store.game.message = data.message;
+          store.game.complete = data.complete;
+
+          if (data.player === playerId) {
+            router.navigate(`/results/${data.game}`);
+          } else {
+            router.navigate(`/move/${playerId}`);
+          }
+          break;
+      }
+    };
+
+    return connection;
+  } catch (error) {
+    console.error("Web socket connection failed");
+    document.querySelector('#message').innnerText = "Game server is not available";
+    document.querySelector('#opponentGame').style.display = "hidden";
+
+    return false;
+  }
 }
 
 router.hooks({
@@ -149,8 +175,8 @@ router.hooks({
       }
       // Run this code if the view is not listed above
       case "join":
-        if (params.gameId) {
-          store.game.id = params.gameId;
+        if (params.game) {
+          store.game.id = params.game;
         }
         done();
         break;
@@ -224,15 +250,7 @@ router.hooks({
         document.querySelector('#joinGame').addEventListener('click', async event => {
           event.preventDefault();
 
-          let playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
-
-          store.game.players[playerId] = {
-            name: document.querySelector('#name').value,
-            id: playerId,
-            hand: ""
-          };
-
-          store.game.socket = setupConnection('join', name);
+          store.game.socket = setupConnection('join', document.querySelector('#name').value);
         });
         break;
       case "move":
@@ -252,16 +270,18 @@ router.hooks({
                 name: 'Computer',
                 hand: hands[(Math.floor(Math.random() * hands.length))]
               };
-
+              store.game.complete = true;
             } else {
               // Send move message to connection
               const moveRequest = {
                 action: "move",
                 game: store.game.id,
-                move: store.game.players[playerId].hand
+                player: playerId,
+                move: hand
               };
+              console.log('matsinet-moveRequest', moveRequest);
 
-              store.game.socket.send(moveRequest);
+              store.game.socket.send(JSON.stringify(moveRequest));
             }
 
             // Determine who won
@@ -277,40 +297,40 @@ router.hooks({
             // } else {
             //   whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
             // }
-            store.rockPaperScissors.won = whoWonOutput;
-            store.rockPaperScissors.message = whoWonOutput;
+            store.game.message = whoWonOutput;
 
-            router.navigate(`/results/${playerId}`);
+            router.navigate(`/results/${store.game.id}`);
           });
         });
         break;
       case "results":
         store.game.id = "";
-        store.game.won = "";
         store.game.message = "";
-        store.game.isAgainstComputer = false;
         store.game.hasOpponent = false;
 
-        document.querySelector('#newGame').addEventListener("click", event => {
-          event.preventDefault();
+        if(store.game.complete) {
+          document.querySelector('#newGame').addEventListener("click", event => {
+            event.preventDefault();
 
-          if (store.game.socket) {
-            store.game.socket.destroy();
-          }
+            if (store.game.socket) {
+              store.game.socket.destroy();
+            }
 
-          store.game.players = {};
+            store.game.players = {};
+            store.game.isAgainstComputer = false;
 
-          router.navigate(`/rock-paper-scissors`)
-        });
+            router.navigate(`/rock-paper-scissors`)
+          });
 
-        document.querySelector('#playAgain').addEventListener("click", event => {
-          event.preventDefault();
+          document.querySelector('#playAgain').addEventListener("click", event => {
+            event.preventDefault();
 
-          store.game.players[playerId].hand = "";
-          store.game.players['computer'].hand = "";
+            store.game.players[playerId].hand = "";
+            store.game.players['computer'].hand = "";
 
-          router.navigate(`/move/${playerId}`)
-        });
+            router.navigate(`/move/${playerId}`)
+          });
+        }
         break;
     }
   }
