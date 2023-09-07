@@ -101,11 +101,12 @@ function setupConnection(type, name, player = false) {
           store.game.message = data.message;
           store.game.complete = data.complete;
 
-          if (data.player === store.game.player) {
-            router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
-          } else {
-            router.navigate(`/move/${store.game.player}`);
-          }
+          console.log('matsinet-store.game', store.game);
+          // if (data.player === store.game.player) {
+          //   router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
+          // } else {
+          //   router.navigate(`/move/${store.game.player}`);
+          // }
           break;
       }
     };
@@ -229,7 +230,9 @@ const afterHook = async ({data, params, queryString}) => {
           // }
           store.game.message = whoWonOutput;
 
-          router.navigate(`/results/${playerId}?game=${store.game.id}`);
+          if (store.game.isAgainstComputer) {
+            router.navigate(`/results/${playerId}?game=${store.game.id}`);
+          }
         });
       });
       break;
