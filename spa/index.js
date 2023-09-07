@@ -100,9 +100,9 @@ function setupConnection(type, name) {
           store.game.complete = data.complete;
 
           if (data.player === playerId) {
-            router.navigate(`/results/${data.game}`);
+            router.navigate(`/results/${data.player}`);
           } else {
-            router.navigate(`/move/${playerId}`);
+            router.navigate(`/move/${data.player}`);
           }
           break;
       }
@@ -115,6 +115,148 @@ function setupConnection(type, name) {
     document.querySelector('#opponentGame').style.display = "hidden";
 
     return false;
+  }
+}
+
+const afterHook = async ({data}) => {
+  const view = data?.view ? camelCase(data.view) : "home";
+  const playerId = data.playerId ? data.playerId : "";
+  const state = store[view];
+
+  // Add menu toggle to bars icon in nav bar which is rendered on every page
+  document
+    .querySelector(".fa-bars")
+    .addEventListener("click", () =>
+      document.querySelector("nav > ul").classList.toggle("hidden--mobile")
+    );
+
+  document.getElementById('notification').addEventListener('close', event => {
+    store.notification.visible = false;
+    store.notification.showCount = 0;
+  });
+
+  switch (view) {
+    case "home":
+      document.getElementById('action-button').addEventListener('click', event => {
+        event.preventDefault();
+
+        alert('Hello! You clicked the action button! Redirecting to the pizza view');
+
+        location.href = 'https://www.google.com';
+      });
+      break;
+    case "rockPaperScissors":
+      document.querySelector('#computerGame').addEventListener("click", event => {
+        event.preventDefault();
+
+        // let gameId = new ShortUniqueId({length: 6, dictionary: "alpha"})();
+        let playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
+
+        store.game.players[playerId] = {
+          name: document.querySelector('#name').value,
+          id: playerId,
+          hand: ""
+        };
+        // store.rockPaperScissors.name = name;
+        store.game.hasOpponent = true;
+        store.game.isAgainstComputer = true;
+        store.game.message = "Please select your move as the computer is choosing it's move."
+
+        router.navigate(`/move/${playerId}`);
+      });
+
+      document.querySelector('#opponentGame').addEventListener("click", async event => {
+        event.preventDefault();
+
+        store.game.socket = setupConnection('start', document.querySelector('#name').value);
+      });
+      break;
+    case "join":
+      document.querySelector('#joinGame').addEventListener('click', async event => {
+        event.preventDefault();
+
+        store.game.socket = setupConnection('join', document.querySelector('#name').value);
+      });
+      break;
+    case "move":
+      document.querySelectorAll('.choices .hand').forEach(hand => {
+        hand.addEventListener('click', event => {
+          // Set the player 1 name
+          // Set the player 1 hand from the selected button
+          const hand = event.target.dataset.hand;
+          store.game.players[playerId].hand = hand
+
+          if (store.game.isAgainstComputer) {
+            // Get the list of hands
+            const hands = Object.keys(store.game.hands);
+            // Set computer to a random hand
+            store.game.players['computer'] = {
+              id: 'computer',
+              name: 'Computer',
+              hand: hands[(Math.floor(Math.random() * hands.length))]
+            };
+            store.game.complete = true;
+          } else {
+            // Send move message to connection
+            const moveRequest = {
+              action: "move",
+              game: store.game.id,
+              player: playerId,
+              move: hand
+            };
+            console.log('matsinet-moveRequest', moveRequest);
+
+            store.game.socket.send(JSON.stringify(moveRequest));
+          }
+
+          // Determine who won
+          let whoWonOutput = "";
+
+          for ( let player in store.game.players) {
+            console.log(player);
+          }
+          // if (store.results.player1.hand === store.results.player2.hand) {
+          //   whoWonOutput = "It's a tie, nobody wins this round.";
+          // } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
+          //   whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
+          // } else {
+          //   whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
+          // }
+          store.game.message = whoWonOutput;
+
+          router.navigate(`/results/${playerId}`);
+        });
+      });
+      break;
+    case "results":
+      store.game.id = "";
+      store.game.message = "";
+      store.game.hasOpponent = false;
+
+      if(store.game.complete) {
+        document.querySelector('#newGame').addEventListener("click", event => {
+          event.preventDefault();
+
+          if (store.game.socket) {
+            store.game.socket.destroy();
+          }
+
+          store.game.players = {};
+          store.game.isAgainstComputer = false;
+
+          router.navigate(`/rock-paper-scissors`)
+        });
+
+        document.querySelector('#playAgain').addEventListener("click", event => {
+          event.preventDefault();
+
+          store.game.players[playerId].hand = "";
+          store.game.players['computer'].hand = "";
+
+          router.navigate(`/move/${playerId}`)
+        });
+      }
+      break;
   }
 }
 
@@ -186,154 +328,8 @@ router.hooks({
     }
   },
   // Runs before a route handler that is already the match is already being visited
-  already: ({ data, params }) => {
-    const view = data?.view ? camelCase(data.view) : "home";
-
-    updateNotification();
-
-    render(store[view]);
-  },
-  after:  async ({data}) => {
-    const view = data?.view ? camelCase(data.view) : "home";
-    const playerId = data.playerId ? data.playerId : "";
-    const state = store[view];
-
-    // Add menu toggle to bars icon in nav bar which is rendered on every page
-    document
-      .querySelector(".fa-bars")
-      .addEventListener("click", () =>
-        document.querySelector("nav > ul").classList.toggle("hidden--mobile")
-      );
-
-    document.getElementById('notification').addEventListener('close', event => {
-      store.notification.visible = false;
-      store.notification.showCount = 0;
-    });
-
-    switch (view) {
-      case "home":
-        document.getElementById('action-button').addEventListener('click', event => {
-          event.preventDefault();
-
-          alert('Hello! You clicked the action button! Redirecting to the pizza view');
-
-          location.href = 'https://www.google.com';
-        });
-        break;
-      case "rockPaperScissors":
-        document.querySelector('#computerGame').addEventListener("click", event => {
-          event.preventDefault();
-
-          // let gameId = new ShortUniqueId({length: 6, dictionary: "alpha"})();
-          let playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
-
-          store.game.players[playerId] = {
-            name: document.querySelector('#name').value,
-            id: playerId,
-            hand: ""
-          };
-          // store.rockPaperScissors.name = name;
-          store.game.hasOpponent = true;
-          store.game.isAgainstComputer = true;
-          store.game.message = "Please select your move as the computer is choosing it's move."
-
-          router.navigate(`/move/${playerId}`);
-        });
-
-        document.querySelector('#opponentGame').addEventListener("click", async event => {
-          event.preventDefault();
-
-          store.game.socket = setupConnection('start', document.querySelector('#name').value);
-        });
-        break;
-      case "join":
-        document.querySelector('#joinGame').addEventListener('click', async event => {
-          event.preventDefault();
-
-          store.game.socket = setupConnection('join', document.querySelector('#name').value);
-        });
-        break;
-      case "move":
-        document.querySelectorAll('.choices .hand').forEach(hand => {
-          hand.addEventListener('click', event => {
-            // Set the player 1 name
-            // Set the player 1 hand from the selected button
-            const hand = event.target.dataset.hand;
-            store.game.players[playerId].hand = hand
-
-            if (store.game.isAgainstComputer) {
-              // Get the list of hands
-              const hands = Object.keys(store.game.hands);
-              // Set computer to a random hand
-              store.game.players['computer'] = {
-                id: 'computer',
-                name: 'Computer',
-                hand: hands[(Math.floor(Math.random() * hands.length))]
-              };
-              store.game.complete = true;
-            } else {
-              // Send move message to connection
-              const moveRequest = {
-                action: "move",
-                game: store.game.id,
-                player: playerId,
-                move: hand
-              };
-              console.log('matsinet-moveRequest', moveRequest);
-
-              store.game.socket.send(JSON.stringify(moveRequest));
-            }
-
-            // Determine who won
-            let whoWonOutput = "";
-
-            for ( let player in store.game.players) {
-              console.log(player);
-            }
-            // if (store.results.player1.hand === store.results.player2.hand) {
-            //   whoWonOutput = "It's a tie, nobody wins this round.";
-            // } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
-            //   whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
-            // } else {
-            //   whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
-            // }
-            store.game.message = whoWonOutput;
-
-            router.navigate(`/results/${store.game.id}`);
-          });
-        });
-        break;
-      case "results":
-        store.game.id = "";
-        store.game.message = "";
-        store.game.hasOpponent = false;
-
-        if(store.game.complete) {
-          document.querySelector('#newGame').addEventListener("click", event => {
-            event.preventDefault();
-
-            if (store.game.socket) {
-              store.game.socket.destroy();
-            }
-
-            store.game.players = {};
-            store.game.isAgainstComputer = false;
-
-            router.navigate(`/rock-paper-scissors`)
-          });
-
-          document.querySelector('#playAgain').addEventListener("click", event => {
-            event.preventDefault();
-
-            store.game.players[playerId].hand = "";
-            store.game.players['computer'].hand = "";
-
-            router.navigate(`/move/${playerId}`)
-          });
-        }
-        break;
-    }
-  }
+  already: afterHook,
+  after: afterHook
 });
 
 router
