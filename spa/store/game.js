@@ -1,6 +1,7 @@
 export default {
   id: "",
   complete: false,
+  player: "",
   players: {},
   hasOpponent: false,
   isAgainstComputer: false,

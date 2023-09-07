@@ -165,6 +165,7 @@ wsServer.on('connection', (ws, request) => {
         response.type = 'move';
         response.game = gameId;
         response.player = playerId;
+        response.move = data.move;
 
         const otherPlayerId = Object.keys(games[gameId].players).find(player => player !== playerId);
 
@@ -183,6 +184,7 @@ wsServer.on('connection', (ws, request) => {
           response.complete = true;
           games[gameId].players[playerId].response = response;
           games[gameId].players[otherPlayerId].response = response;
+          console.log('matsinet-games[gameId]', games[gameId]);
         } else {
           response.complete = false;
           response.message = `${games[gameId].players[otherPlayerId].name} is waiting for you to complete your turn!`;

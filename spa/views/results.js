@@ -3,6 +3,7 @@ import * as images from "../assets/img";
 import "../assets/css/views/results.css";
 
 function outputCompletedGame(gameData) {
+  console.log('matsinet-gameData.complete', gameData.complete);
   if (gameData.complete) {
     return html`<div class="hands">${Object.values(gameData.players).map(player => {
       return html`<div id = "player1" class="hand">
