@@ -184,12 +184,14 @@ wsServer.on('connection', (ws, request) => {
             scissors: "paper"
           };
 
+          console.log('matsinet - winningCombos[players[otherPlayerId].move]:', winningCombos[players[otherPlayerId].move]);
+
           if (players[playerId].move === players[otherPlayerId].move) {
             whoWonOutput = "It's a tie, nobody wins this round.";
-          } else if (winningCombos[players[otherPlayerId].move === players[playerId].move]) {
-            whoWonOutput = `${players[playerId].name} wins this round, with a ${players[playerId].move} beating a ${players[otherPlayerId].move}`;
-          } else {
+          } else if (winningCombos[players[otherPlayerId].move] === players[playerId].move) {
             whoWonOutput = `${players[otherPlayerId].name} wins this round, with a ${players[otherPlayerId].move} beating a ${players[playerId].move}`;
+          } else {
+            whoWonOutput = `${players[playerId].name} wins this round, with a ${players[playerId].move} beating a ${players[otherPlayerId].move}`;
           }
 
           games[gameId].players[playerId].response = {
