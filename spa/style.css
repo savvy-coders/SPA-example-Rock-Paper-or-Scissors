@@ -1,10 +1,28 @@
 body {
   width: 100%;
+  font-family: 'Permanent Marker', "Arial Black", sans-serif;
+  font-size: 20px;
 }
 
 header > h1 {
   margin: 5px;
   color: rgb(0, 107, 98);
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+}
+
+.message {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #20b2aa;
+  margin-bottom: 1em;
+}
+
+#main {
+  padding: 1.5em;
 }
 
 dialog {

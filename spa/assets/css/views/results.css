@@ -6,12 +6,19 @@
     background-color: steelblue;
 }
 
-.controls {
-    display: flex;
+.game {
+    margin-top: 3em;
+    margin-bottom: 3em;
 }
 
 .hands {
-    display: flex;
+    column-gap: 6rem;
+}
+
+.hands h2 {
+    text-align: center;
+    margin-bottom: 0;
+    margin-top: 3rem;
 }
 
 .button {

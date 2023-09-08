@@ -44,7 +44,6 @@ function setupConnection(type, name, player = false) {
     let connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
 
     connection.onopen = (event) => {
-      console.log('matsinet-store.game', store.game);
       const gameRequest = {
         action: false,
         name
@@ -59,10 +58,9 @@ function setupConnection(type, name, player = false) {
           break;
       }
 
-      console.log('matsinet-gameRequest', gameRequest);
-
       if (gameRequest.action) {
         connection.send(JSON.stringify(gameRequest));
+        console.log('matsinet-store.game', store.game);
       }
     }
 
@@ -72,41 +70,58 @@ function setupConnection(type, name, player = false) {
 
     connection.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log('matsinet-wsData', data);
 
-      store.game.id = data.game;
-      store.game.players[data.player] = {
-        name,
-        id: data.player
-      };
-      store.game.isAgainstComputer = false;
+      if (data.type !== 'move') {
+        store.game.id = data.game;
+        store.game.players[data.player] = {
+          id: data.player,
+          name
+        };
+        store.game.isAgainstComputer = false;
+      }
 
       switch (data.type) {
         case 'start':
           store.game.hasOpponent = false;
           store.game.message = `${data.message}: <a href="${location.origin}/join?game=${data.game}">${data.game}</a>`;
           store.game.player = data.player;
-          console.log('matsinet-start-data', data);
+          
           router.navigate(`/move/${data.player}`);
           break;
         case 'join':
           store.game.hasOpponent = true;
           store.game.message = data.message;
           store.game.player = data.player;
-          console.log('matsinet-join-data', data);
+          store.game.players[data.otherPlayer.id] = data.otherPlayer;
+          
           router.navigate(`/move/${data.player}`);
           break;
         case 'move':
-          store.game.players[data.player].hand = data.hand;
+          console.log('matsinet - store.game:', store.game);
+          console.log('matsinet - data.player:', data.player);
+          console.log('matsinet - data.move:', data.move);
+
+          store.game.players[data.player].hand = data.move;
           store.game.message = data.message;
           store.game.complete = data.complete;
+          
+          if (data.complete) {
+            // Do something here
 
-          console.log('matsinet-store.game', store.game);
-          // if (data.player === store.game.player) {
-          //   router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
-          // } else {
-          //   router.navigate(`/move/${store.game.player}`);
-          // }
+            // if (data.player === store.game.player) {
+            //   router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
+            // } else {
+            //   router.navigate(`/move/${store.game.player}`);
+            // }
+
+            router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
+          } else {
+            if (data.player === store.game.player) {
+              router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
+            } else if (! data.complete && data.player !== store.game.player) {
+              router.navigate(`/move/${store.game.player}`);
+            }
+          }
           break;
       }
     };
@@ -123,9 +138,8 @@ function setupConnection(type, name, player = false) {
 
 const afterHook = async ({data, params, queryString}) => {
   const view = data?.view ? camelCase(data.view) : "home";
-  let playerId = data.playerId ? data.playerId : new ShortUniqueId({length: 10, dictionary: "alpha"})();
+  let playerId = 'playerId' in data ? data.playerId : new ShortUniqueId({length: 10, dictionary: "alpha"})();
   const state = store[view];
-  console.log('matsinet-afterHook-query', queryString);
 
   // Add menu toggle to bars icon in nav bar which is rendered on every page
   document
@@ -162,7 +176,6 @@ const afterHook = async ({data, params, queryString}) => {
           name: document.querySelector('#name').value,
           hand: ""
         };
-        // store.rockPaperScissors.name = name;
         store.game.hasOpponent = true;
         store.game.isAgainstComputer = true;
         store.game.message = "Please select your move as the computer is choosing it's move."
@@ -174,15 +187,13 @@ const afterHook = async ({data, params, queryString}) => {
         event.preventDefault();
 
         store.game.socket = await setupConnection('start', document.querySelector('#name').value);
-        console.log('matsinet-start-playerId', store.game.player);
       });
       break;
     case "join":
       document.querySelector('#joinGame').addEventListener('click', async event => {
         event.preventDefault();
 
-        console.log('matsinet-join-playerId', store.game.player);
-        store.game.socket = await setupConnection('join', document.querySelector('#name').value, store.game.player);
+        store.game.socket = await setupConnection('join', document.querySelector('#name').value, playerId);
       });
       break;
     case "move":
@@ -191,7 +202,6 @@ const afterHook = async ({data, params, queryString}) => {
           // Set the player 1 name
           // Set the player 1 hand from the selected button
           const hand = event.target.dataset.hand;
-          console.log('matsinet-store.game.players', store.game.players);
           store.game.players[playerId].hand = hand
 
           if (store.game.isAgainstComputer) {
@@ -218,10 +228,6 @@ const afterHook = async ({data, params, queryString}) => {
               whoWonOutput = `${players.computer.name} wins this round, with a ${players.computer.hand} beating a ${players.human.hand}`;
             }
             store.game.message = whoWonOutput;
-
-            console.log('matsinet-store.game', store.game);
-
-            router.navigate(`/results/${playerId}?game=${store.game.id}`);
           } else {
             // Send move message to connection
             const moveRequest = {
@@ -230,17 +236,16 @@ const afterHook = async ({data, params, queryString}) => {
               player: playerId,
               move: hand
             };
-            console.log('matsinet-moveRequest', moveRequest);
 
             store.game.socket.send(JSON.stringify(moveRequest));
           }
+
+          // router.navigate(`/results/${playerId}?game=${store.game.id}`);
         });
       });
       break;
     case "results":
       store.game.id = "";
-      store.game.message = "";
-      store.game.hasOpponent = false;
 
       if(store.game.complete) {
         document.querySelector('#newGame').addEventListener("click", event => {
@@ -267,6 +272,12 @@ const afterHook = async ({data, params, queryString}) => {
       }
       break;
   }
+}
+
+const alreadyHook = (match) => {
+  render(store[camelCase(match.data.view)]);
+
+  afterHook(match);
 }
 
 router.hooks({
@@ -337,7 +348,7 @@ router.hooks({
     }
   },
   // Runs before a route handler that is already the match is already being visited
-  already: afterHook,
+  already: alreadyHook,
   after: afterHook
 });
 

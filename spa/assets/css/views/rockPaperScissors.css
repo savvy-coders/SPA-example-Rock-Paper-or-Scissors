@@ -1,5 +1,5 @@
 .userForm {
-    margin: 1em;
+    margin: 3em;
 }
 
 .hands {
@@ -12,6 +12,14 @@
 
 .hand.button {
     width: 8em;
+}
+
+.mb-2 {
+    margin-bottom: 2em;
+}
+
+.fs-1-5 {
+    font-size: 1.5rem;
 }
 
 .button {
@@ -37,4 +45,26 @@
     font-size: 1.2em;
     color: red;
     font-weight: bold;
+}
+
+#name-label {
+    margin-top: 0.5em;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+
+}
+
+#name {
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    /*border-radius: 0.2em;*/
+    border-top: white 0 solid;
+    border-left: white 0 solid;
+    border-right: white 0 solid;
+}
+
+#name:focus {
+    border-top: white 0 solid;
+    border-left: white 0 solid;
+    border-right: white 0 solid;
 }

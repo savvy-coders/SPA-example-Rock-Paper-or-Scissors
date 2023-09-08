@@ -3,8 +3,6 @@ import dotenv from "dotenv";
 import { WebSocketServer, WebSocket } from "ws";
 import ShortUniqueId from 'short-unique-id';
 
-// import rockPaperScissors from "./controllers/rockPaperScissors.js";
-
 dotenv.config();
 
 const app = express();
@@ -102,6 +100,7 @@ wsServer.on('connection', (ws, request) => {
         response.type = 'start';
         response.game = gameId;
         response.player = playerId;
+        response.name = data.name;
         response.message = `Please invite the other player to join using the provided URL`;
 
         games[gameId] = game;
@@ -120,25 +119,34 @@ wsServer.on('connection', (ws, request) => {
           };
           playerWss[playerId] = ws;
         } else {
-          response.type = 'join';
-          response.message = `Can not join game ${gameId}, as it does not exist.`;
-          response.player = playerId;
-          response.game = gameId;
-          response.error = true;
+          // response.type = 'join';
+          // response.message = `Can not join game ${gameId}, as it does not exist.`;
+          // response.player = playerId;
+          // response.game = gameId;
+          // response.error = true;
         }
 
         games[gameId].players[playerId].response = {
           type: 'join',
           game: gameId,
-          message: `Please select your move and wait for the ${games[gameId].players[otherPlayerId].name} to make their move.`,
-          player: playerId
+          message: `Please select your move, wait for ${games[gameId].players[otherPlayerId].name} to make their move.`,
+          player: playerId,
+          name: data.name,
+          otherPlayer: {
+            id: otherPlayerId,
+            name: games[gameId].players[otherPlayerId].name
+          }
         }
 
         games[gameId].players[otherPlayerId].response = {
           type: 'join',
           game: gameId,
-          message: `${games[gameId].players[playerId].name} has joined the game (${gameId}), please select your move and wait for them to make their move.`,
-          player: otherPlayerId
+          message: `${games[gameId].players[playerId].name} has joined the game (${gameId}) and is waiting for you.`,
+          player: otherPlayerId,
+          otherPlayer: {
+            id: playerId,
+            name: games[gameId].players[playerId].name
+          }
         };
       }
 
@@ -149,6 +157,8 @@ wsServer.on('connection', (ws, request) => {
 
         const gameId = data.game;
         const playerId = data.player;
+
+        console.log('matsinet - start move- games[gameId].players:', games[gameId].players);
 
         games[gameId].players[playerId].move = data.move;
         console.log('matsinet-games[data.game]', games[data.game]);
@@ -162,49 +172,70 @@ wsServer.on('connection', (ws, request) => {
 
         console.log('matsinet-moves', moves);
 
-        response.type = 'move';
-        response.game = gameId;
-        response.player = playerId;
-        response.move = data.move;
-
         const otherPlayerId = Object.keys(games[gameId].players).find(player => player !== playerId);
 
         if (moves.length > 1) {
+          let whoWonOutput = "TBD";
+
           // if (store.results.player1.hand === store.results.player2.hand) {
           //   whoWonOutput = "It's a tie, nobody wins this round.";
           // } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
           //   whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
           // } else {
           //   whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
-
           // }
 
-          // Replace with who won message
-          response.message = 'Game complete!'
-          response.complete = true;
-          games[gameId].players[playerId].response = response;
-          games[gameId].players[otherPlayerId].response = response;
-          console.log('matsinet-games[gameId]', games[gameId]);
+          games[gameId].players[playerId].response = {
+            type: 'move',
+            player: playerId,
+            game: gameId,
+            move: data.move,
+            message: whoWonOutput,
+            complete: true
+          }
+  
+          games[gameId].players[otherPlayerId].response = {
+            type: 'move',
+            player: playerId,
+            game: gameId,
+            move: data.move,
+            message: whoWonOutput,
+            complete: true
+          };
         } else {
-          response.complete = false;
-          response.message = `${games[gameId].players[otherPlayerId].name} is waiting for you to complete your turn!`;
-          games[gameId].players[playerId].response = response;
-          response.message = `${games[gameId].players[playerId].name} is waiting for you to complete your turn!`;
-          games[gameId].players[otherPlayerId].response = response;
+          console.log('matsinet- before move message - games[gameId].players:', games[gameId].players);
+          
+          games[gameId].players[playerId].response = {
+            type: 'move',
+            player: playerId,
+            game: gameId,
+            move: data.move,
+            message: `Please wait for ${games[gameId].players[otherPlayerId].name} to complete their turn!`,
+            complete: false
+          }
+  
+          games[gameId].players[otherPlayerId].response = {
+            type: 'move',
+            player: playerId,
+            game: gameId,
+            move: data.move,
+            message: `${games[gameId].players[playerId].name} is waiting for you to complete your turn!`,
+            complete: false
+          };
+
+          console.log('matsinet - after move message- games[gameId].players:', games[gameId].players);
         }
       }
 
       gameId = data.game || gameId;
       console.log('matsinet-wsSend-gameId', gameId);
       let playerIds = Object.keys(games[gameId].players);
-      // console.log('matsinet-playerIds', playerIds);
-      console.log('matsinet-Object.keys(playerWss)', Object.keys(playerWss));
-      playerIds.forEach(playerId => {
-        console.log('matsinet-playerId', playerId);
-        if (playerWss[playerId] && playerWss[playerId].readyState === WebSocket.OPEN && games[gameId].players[playerId].response) {
-          playerWss[playerId].send(JSON.stringify(games[gameId].players[playerId].response), { binary: isBinary });
-          console.log(`Sent messaage '${games[gameId].players[playerId].response.message}' to ${playerId}`);
-          playerWss[playerId].response = false;
+      playerIds.forEach(id => {
+        console.log('matsinet-playerId', id);
+        if (playerWss[id] && playerWss[id].readyState === WebSocket.OPEN && games[gameId].players[id].response) {
+          playerWss[id].send(JSON.stringify(games[gameId].players[id].response), { binary: isBinary });
+          console.log(`Sent messaage '${games[gameId].players[id].response.message}' to ${id}`);
+          playerWss[id].response = false;
         }
       });
 

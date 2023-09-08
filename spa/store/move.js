@@ -1,4 +1,4 @@
 export default {
-  header: "Select your hand",
+  header: "Select your move!",
   view: "move"
 };
