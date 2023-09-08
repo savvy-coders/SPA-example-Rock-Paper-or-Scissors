@@ -186,7 +186,7 @@ wsServer.on('connection', (ws, request) => {
 
           if (players[playerId].move === players[otherPlayerId].move) {
             whoWonOutput = "It's a tie, nobody wins this round.";
-          } else if (winningCombos[players[playerId].move === players[otherPlayerId].move]) {
+          } else if (winningCombos[players[otherPlayerId].move === players[playerId].move]) {
             whoWonOutput = `${players[playerId].name} wins this round, with a ${players[playerId].move} beating a ${players[otherPlayerId].move}`;
           } else {
             whoWonOutput = `${players[otherPlayerId].name} wins this round, with a ${players[otherPlayerId].move} beating a ${players[playerId].move}`;
