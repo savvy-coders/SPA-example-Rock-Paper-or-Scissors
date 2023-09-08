@@ -228,6 +228,8 @@ const afterHook = async ({data, params, queryString}) => {
               whoWonOutput = `${players.computer.name} wins this round, with a ${players.computer.hand} beating a ${players.human.hand}`;
             }
             store.game.message = whoWonOutput;
+
+            router.navigate(`/results/${playerId}`);
           } else {
             // Send move message to connection
             const moveRequest = {
