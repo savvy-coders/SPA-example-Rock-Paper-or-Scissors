@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "spa:build": "parcel build index.html && cp _redirects ./dist/",
+    "spa:build": "parcel build spa/index.html && cp _redirects ./dist/",
     "spa:watch": "parcel spa/index.html",
     "api:watch": "nodemon --watch ./api -e js api/app.js"
   },
