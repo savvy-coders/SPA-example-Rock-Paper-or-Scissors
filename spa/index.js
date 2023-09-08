@@ -123,7 +123,7 @@ function setupConnection(type, name, player = false) {
 
 const afterHook = async ({data, params, queryString}) => {
   const view = data?.view ? camelCase(data.view) : "home";
-  const playerId = data.playerId ? data.playerId : "";
+  let playerId = data.playerId ? data.playerId : new ShortUniqueId({length: 10, dictionary: "alpha"})();
   const state = store[view];
   console.log('matsinet-afterHook-query', queryString);
 
@@ -154,11 +154,12 @@ const afterHook = async ({data, params, queryString}) => {
         event.preventDefault();
 
         // let gameId = new ShortUniqueId({length: 6, dictionary: "alpha"})();
-        store.game.player = new ShortUniqueId({length: 10, dictionary: "alpha"})();
+        playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
+        store.game.player = 'human';
 
-        store.game.players[playerId] = {
-          name: document.querySelector('#name').value,
+        store.game.players['human'] = {
           id: store.game.player,
+          name: document.querySelector('#name').value,
           hand: ""
         };
         // store.rockPaperScissors.name = name;
@@ -190,6 +191,7 @@ const afterHook = async ({data, params, queryString}) => {
           // Set the player 1 name
           // Set the player 1 hand from the selected button
           const hand = event.target.dataset.hand;
+          console.log('matsinet-store.game.players', store.game.players);
           store.game.players[playerId].hand = hand
 
           if (store.game.isAgainstComputer) {
@@ -202,6 +204,24 @@ const afterHook = async ({data, params, queryString}) => {
               hand: hands[(Math.floor(Math.random() * hands.length))]
             };
             store.game.complete = true;
+
+            // Determine who won
+            let whoWonOutput = "";
+
+            const players = store.game.players;
+
+            if (players.human.hand === players.computer.hand) {
+              whoWonOutput = "It's a tie, nobody wins this round.";
+            } else if (store.game.hands[players.human.hand] === players.computer.hand) {
+              whoWonOutput = `${players.human.name} wins this round, with a ${players.human.hand} beating a ${players.computer.hand}`;
+            } else {
+              whoWonOutput = `${players.computer.name} wins this round, with a ${players.computer.hand} beating a ${players.human.hand}`;
+            }
+            store.game.message = whoWonOutput;
+
+            console.log('matsinet-store.game', store.game);
+
+            router.navigate(`/results/${playerId}?game=${store.game.id}`);
           } else {
             // Send move message to connection
             const moveRequest = {
@@ -213,25 +233,6 @@ const afterHook = async ({data, params, queryString}) => {
             console.log('matsinet-moveRequest', moveRequest);
 
             store.game.socket.send(JSON.stringify(moveRequest));
-          }
-
-          // Determine who won
-          let whoWonOutput = "";
-
-          for ( let player in store.game.players) {
-            console.log(player);
-          }
-          // if (store.results.player1.hand === store.results.player2.hand) {
-          //   whoWonOutput = "It's a tie, nobody wins this round.";
-          // } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
-          //   whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
-          // } else {
-          //   whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
-          // }
-          store.game.message = whoWonOutput;
-
-          if (store.game.isAgainstComputer) {
-            router.navigate(`/results/${playerId}?game=${store.game.id}`);
           }
         });
       });
