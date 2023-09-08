@@ -138,7 +138,7 @@ function setupConnection(type, name, player = false) {
 
 const afterHook = async ({data, params, queryString}) => {
   const view = data?.view ? camelCase(data.view) : "home";
-  let playerId = 'playerId' in data ? data.playerId : new ShortUniqueId({length: 10, dictionary: "alpha"})();
+  let playerId = data && 'playerId' in data ? data.playerId : new ShortUniqueId({length: 10, dictionary: "alpha"})();
   const state = store[view];
 
   // Add menu toggle to bars icon in nav bar which is rendered on every page
@@ -314,7 +314,7 @@ router.hooks({
 
           const location = {latitude: positionResponse.coords.latitude, longitude: positionResponse.coords.longitude};
 
-          const geoResponse = await axios.get(`http://api.openweathermap.org/geo/1.0/reverse?lat=${location.latitude}8&lon=${location.longitude}&limit=3&appid=${process.env.OPEN_WEATHER_MAP_API_KEY}`);
+          const geoResponse = await axios.get(`https://api.openweathermap.org/geo/1.0/reverse?lat=${location.latitude}8&lon=${location.longitude}&limit=3&appid=${process.env.OPEN_WEATHER_MAP_API_KEY}`);
 
           const city = geoResponse.data[0];
 
