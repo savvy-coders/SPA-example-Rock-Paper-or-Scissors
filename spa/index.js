@@ -263,14 +263,16 @@ const afterHook = async ({data, params, queryString}) => {
           router.navigate(`/rock-paper-scissors`)
         });
 
-        document.querySelector('#playAgain').addEventListener("click", event => {
-          event.preventDefault();
+        if (store.game.isAgainstComputer) {
+          document.querySelector('#playAgain').addEventListener("click", event => {
+            event.preventDefault();
 
-          store.game.players[playerId].hand = "";
-          store.game.players['computer'].hand = "";
+            store.game.players[playerId].hand = "";
+            store.game.players['computer'].hand = "";
 
-          router.navigate(`/move/${playerId}`)
-        });
+            router.navigate(`/move/${playerId}`)
+          });
+        }
       }
       break;
   }
