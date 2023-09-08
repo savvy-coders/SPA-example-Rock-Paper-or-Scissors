@@ -177,13 +177,20 @@ wsServer.on('connection', (ws, request) => {
         if (moves.length > 1) {
           let whoWonOutput = "TBD";
 
-          // if (store.results.player1.hand === store.results.player2.hand) {
-          //   whoWonOutput = "It's a tie, nobody wins this round.";
-          // } else if (store.results.hands[store.results.player1.hand] === store.results.player2.hand) {
-          //   whoWonOutput = `${store.results.player1.name} wins this round, with a ${store.results.player1.hand} beating a ${store.results.player2.hand}`;
-          // } else {
-          //   whoWonOutput = `${store.results.player2.name} wins this round, with a ${store.results.player2.hand} beating a ${store.results.player1.hand}`;
-          // }
+          const players = games[gameId].players;
+          const winningCombos = {
+            rock: "scissors",
+            paper: "rock",
+            scissors: "paper"
+          };
+
+          if (players[playerId].move === players[otherPlayerId].move) {
+            whoWonOutput = "It's a tie, nobody wins this round.";
+          } else if (winningCombos[players[playerId].move === players[otherPlayerId].move]) {
+            whoWonOutput = `${players[playerId].name} wins this round, with a ${players[playerId].move} beating a ${players[otherPlayerId].move}`;
+          } else {
+            whoWonOutput = `${players[otherPlayerId].name} wins this round, with a ${players[otherPlayerId].move} beating a ${players[playerId].move}`;
+          }
 
           games[gameId].players[playerId].response = {
             type: 'move',

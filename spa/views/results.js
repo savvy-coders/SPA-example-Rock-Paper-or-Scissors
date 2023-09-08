@@ -15,7 +15,7 @@ function outputCompletedGame(gameData) {
     </div>
     <div class="controls flex-center">
       <div id="newGame" class="button">New Game</div>
-      <div id="playAgain" class="button">Play Again</div>
+      ${gameData.isAgainstComputer ? `<div id="playAgain" class="button">Play Again</div>` : ""}
     </div>`;
   }
 }

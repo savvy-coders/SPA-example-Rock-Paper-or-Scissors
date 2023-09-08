@@ -254,7 +254,7 @@ const afterHook = async ({data, params, queryString}) => {
           event.preventDefault();
 
           if (store.game.socket) {
-            store.game.socket.destroy();
+            store.game.socket.close();
           }
 
           store.game.players = {};
