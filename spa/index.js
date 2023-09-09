@@ -41,7 +41,7 @@ function setupConnection(type, name, player = false) {
   }
 
   try {
-    let connection = new WebSocket(`${process.env.GAME_API_URL}/game`);
+    let connection = new WebSocket(`${process.env.GAME_API_URL}/games`);
 
     connection.onopen = (event) => {
       const gameRequest = {
@@ -97,23 +97,11 @@ function setupConnection(type, name, player = false) {
           router.navigate(`/move/${data.player}`);
           break;
         case 'move':
-          console.log('matsinet - store.game:', store.game);
-          console.log('matsinet - data.player:', data.player);
-          console.log('matsinet - data.move:', data.move);
-
           store.game.players[data.player].hand = data.move;
           store.game.message = data.message;
           store.game.complete = data.complete;
           
           if (data.complete) {
-            // Do something here
-
-            // if (data.player === store.game.player) {
-            //   router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
-            // } else {
-            //   router.navigate(`/move/${store.game.player}`);
-            // }
-
             router.navigate(`/results/${store.game.player}?game=${store.game.id}`);
           } else {
             if (data.player === store.game.player) {
@@ -164,33 +152,34 @@ const afterHook = async ({data, params, queryString}) => {
       });
       break;
     case "rockPaperScissors":
-      document.querySelector('#computerGame').addEventListener("click", event => {
+      document.querySelector('form').addEventListener("submit", async event => {
         event.preventDefault();
+        
+        console.log('matsinet-event:', event);
+        
+        if (event.submitter.name === 'computerGame') {
+          playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
+          store.game.player = 'human';
 
-        // let gameId = new ShortUniqueId({length: 6, dictionary: "alpha"})();
-        playerId = new ShortUniqueId({length: 10, dictionary: "alpha"})();
-        store.game.player = 'human';
+          store.game.players['human'] = {
+            id: store.game.player,
+            name: document.querySelector('#name').value,
+            hand: ""
+          };
+          store.game.hasOpponent = true;
+          store.game.isAgainstComputer = true;
+          store.game.message = "Please select your move as the computer is choosing it's move."
 
-        store.game.players['human'] = {
-          id: store.game.player,
-          name: document.querySelector('#name').value,
-          hand: ""
-        };
-        store.game.hasOpponent = true;
-        store.game.isAgainstComputer = true;
-        store.game.message = "Please select your move as the computer is choosing it's move."
+          router.navigate(`/move/${store.game.player}`);
+        }
 
-        router.navigate(`/move/${store.game.player}`);
-      });
-
-      document.querySelector('#opponentGame').addEventListener("click", async event => {
-        event.preventDefault();
-
-        store.game.socket = await setupConnection('start', document.querySelector('#name').value);
+        if (event.submitter.name === 'opponentGame') {
+          store.game.socket = await setupConnection('start', document.querySelector('#name').value);
+        }
       });
       break;
     case "join":
-      document.querySelector('#joinGame').addEventListener('click', async event => {
+      document.querySelector('form').addEventListener('submit', async event => {
         event.preventDefault();
 
         store.game.socket = await setupConnection('join', document.querySelector('#name').value, playerId);
@@ -345,6 +334,21 @@ router.hooks({
           store.game.id = params.game;
         }
         done();
+        break;
+      case "results":
+          if (store.game.complete) {
+            console.log('matsinet-store.game:', store.game);
+            axios.post(`${process.env.API_URL}/games`, store.game)
+            .then(response => {
+              done();
+            })
+            .catch(error => {
+              console.error("That didn't go a planned", error);
+              done();
+            });
+          } else {
+            done();
+          }
         break;
       default: {
         done();

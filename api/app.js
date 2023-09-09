@@ -2,8 +2,28 @@ import express from "express";
 import dotenv from "dotenv";
 import { WebSocketServer, WebSocket } from "ws";
 import ShortUniqueId from 'short-unique-id';
+import mongoose from "mongoose";
+import Game from "./models/Game.js";
 
 dotenv.config();
+
+const MONGODB = process.env.MONGODB || "mongodb://localhost/rockpaperscissors";
+
+// Database connection
+mongoose.connect(
+  MONGODB,
+  { 
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }
+);
+const db = mongoose.connection;
+
+db.on("error", console.error.bind(console, "connection error:"));
+db.once(
+  "open",
+  console.log.bind(console, "Successfully opened connection to Mongo!")
+);
 
 const app = express();
 
@@ -40,6 +60,23 @@ app.get("/status", (request, response) => {
 // Moving the logging middleware to this location so that the logs on render.com are not filled up with status checks
 app.use(logging);
 
+app.post('/games', async (request, response) => {
+  try {
+    const game = new Game(request.body);
+    
+    const data = await game.save();
+
+    response.json(data);
+  } catch(error) {
+    // Output error to the console in case it fails to send in response
+    console.log(error);
+    
+    if ('name' in error && error.name === 'ValidationError') return response.status(400).json(error.errors);
+    
+    return response.status(500).json(error.errors);
+  }
+});
+
 const PORT = process.env.PORT || 4040;
 const apiServer = app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
@@ -75,7 +112,7 @@ wsServer.on('connection', (ws, request) => {
     const data = JSON.parse(message);
     console.log('Message Received!', data);
 
-    if (request.url.includes('/game')) {
+    if (request.url.includes('/games')) {
       const response = {
         success: true,
         error: false
