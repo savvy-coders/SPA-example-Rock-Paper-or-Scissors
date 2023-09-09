@@ -17,6 +17,13 @@ const gameSchema = new mongoose.Schema({
   },
   message: {
     type: String
+  },
+  timestamp: {
+    type: String,
+    default: () => {
+      const now = new Date();
+      return now.toString();
+    }
   }
 });
 
