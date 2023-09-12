@@ -288,6 +288,11 @@ router.hooks({
     switch (view) {
       // Run this code if the home view is requested
       case "home": {
+        // Call the API server to wake it up if needed
+        axios.get(`${process.env.API_URL}/status`).then(response => {
+          console.log('Waking up the API server', response);
+        });
+        
         const kelvinToFahrenheit = kelvinTemp => Math.round((kelvinTemp - 273.15) * (9 / 5) + 32);
 
         try {
