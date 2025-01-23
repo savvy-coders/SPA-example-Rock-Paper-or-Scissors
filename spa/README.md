@@ -20,7 +20,7 @@ In this repo you will be using:
 
 `lodash` : Is a JavaScript library that provides utility functions for common programming tasks using a functional programming paradigm; it builds upon the older underscore. js library. Lodash has several built-in utility functions that make coding in JavaScript easier and cleaner.
 
-`mongoose` :is an Object Data Modeling (ODM) library that is used for schema validations and managing relationships among data. Mongoose is frequently used with NodeJS and MongoDB. 
+`mongoose` :is an Object Data Modeling (ODM) library that is used for schema validations and managing relationships among data. Mongoose is frequently used with NodeJS and MongoDB.
 
 `navigo` : Is a simple dependency-free minimalistic JavaScript router
 
@@ -31,10 +31,10 @@ ___
 Create/update the .env file at the root level with the following key/values, update as needed:
 
 ```bash
-PIZZA_PLACE_API_URL=http://localhost:4040  
-MONGODB=mongodb://localhost/pizza 
+PIZZA_PLACE_API_URL=http://localhost:4040
+MONGODB=mongodb://localhost/pizza
 [^---This MONGODB value above should be changed to be your own mongodb cluster connection string! See the curriculum for more on that!---^]
-DB_PORT=4040 
+DB_PORT=4040
 ```
 
 Then add this code block to root level index.js for dotenv to work properly:
@@ -57,6 +57,9 @@ ___
 
 In the terminal use npm run
 
-`serve`: Start the frontend SPA with hot reload  
-`app:watch`: Start the backend API with hot reload  
+`serve`: Start the frontend SPA with hot reload
+`app:watch`: Start the backend API with hot reload
 `parcel-build`: Package SPA for production deployment
+
+
+
